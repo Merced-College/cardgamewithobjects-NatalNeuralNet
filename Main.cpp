@@ -1,32 +1,61 @@
+//Arnold Rocha
+
+
 #include <iostream>
 
 using namespace std;
 
-//your job is to fix this object
-class Card { // Keeps a card object
-public:
-  //put the constructors and getters and setters here
+//Card Class
+class Card { 
 
+public:
+  // Constructors
+  Card(string s, string r, int v) : suit(s), rank(r), value(v) {}
+  
+  // Empty Intialization  
+  Card( ) : suit(""), rank(""), value(0) {}
+
+
+  /* Class Function - print_card
+    Input: NONE 
+    Output: print card information
+  */
+  void print_card(){
+    cout << rank << " of " << suit << " (" << value << ")" << endl;
+  }
+
+  // Setters
+  void setSuit(string s){suit = s;}
+  void setRank(string r){rank = r;}
+  void setValue(int v){value = v;}
+
+  // Getters
+  string get_suit(){return suit;}
+  string get_rank(){return rank;}
+  int get_value( ){return value;}
+
+// By default doesnt need to be stated, Struct is public by default
 private:
-  //put data variables here, look below to see what data variables you should have
+
+  // Private class variables
+  string suit;
+  string rank;
+  int value;
 };
 
-//define your getters and setters here
-
-//the rest of the code is working code - if you define your object above
+// Deck Data
 const string SUITS[] = {"Hearts", "Diamonds", "Clubs", "Spades"};
 const string RANKS[] = {"2", "3",  "4",    "5",     "6",    "7",  "8",
                         "9", "10", "Jack", "Queen", "King", "Ace"};
 const int VALUES[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11};
 
-// int DECK[52];
 Card deck[52];
 int currentCardIndex = 0;
-/*
-defines the arrays and variables related to a deck of playing cards through the
-suits, ranks, the current card index, and the deck itself.
+/* 
+Deck Functions - initializeDeck
+  Input: NONE 
+  Output: Void; Initializes a standard 52-card deck
 */
-
 void initializeDeck() {
   int deckIndex = 0;
   for (int suitIndex = 0; suitIndex < 4; suitIndex++) {
@@ -38,11 +67,11 @@ void initializeDeck() {
   }
 }
 
-void printDeck() {
-  for (int i = 0; i < 52; i++)
-    deck[i].print_card();
-}
-
+/* 
+shuffleDeck
+  Input: NONE 
+  Output: Void; Shuffles deck randonly
+*/
 void shuffleDeck() {
   srand((time(0)));
   for (int i = 0; i < 52; i++) {
@@ -86,7 +115,11 @@ int playerTurn(int playerTotal) {
       if (playerTotal > 21) {
         break;
       }
+      else if(playerTotal==21){
+        return playerTotal;
+      }
     } else if (action == "stand") {
+      cout<< "User stands with "<< playerTotal << endl;
       break;
     } else {
       cout << "Invalid action. Please type 'hit' or 'stand'." << endl;
@@ -95,21 +128,96 @@ int playerTurn(int playerTotal) {
   return playerTotal;
 }
 
+int dealerTurn(int dealerTotal) {
 
-int main() {
-  initializeDeck();
-  //printDeck();
-  shuffleDeck();
- //printDeck();
+    cout << "Dealer's total is " << dealerTotal << endl;
+    
+    while (dealerTotal<18) {
+      cout << "Dealer hits " <<endl;
 
-  int playerTotal = dealInitialPlayerCards();
-  cout << "The playerTotal is " << playerTotal << endl;
-  //int dealerTotal = dealInitialDealerCards();
+      Card newCard = dealCard();
+      //playerTotal += cardValue(newCard);
+      dealerTotal += newCard.get_value();
+      cout << "Dealer drew a ";
+      newCard.print_card();
+      //cout << "You drew a " << RANKS[newCard % 13] << " of "
+           //<< SUITS[newCard / 13] << endl;
+      if (dealerTotal > 21) {
+        break;
+      }
+    }
+    if (dealerTotal<21){
+        cout << "Dealer stands with "<< dealerTotal <<endl;
+      }
+  return dealerTotal;
+}
 
-  playerTotal = playerTurn(playerTotal);
+void determineWinner(int playerTotal, int dealerTotal){
   if (playerTotal > 21) {
     cout << "You busted! Dealer wins." << endl;
-    return 0;
-  } 
-  
-}
+    }
+  else if(dealerTotal > 21){
+    cout << "Dealer busted with " << dealerTotal<<"! You win." << endl;
+    }
+  else if(dealerTotal == 21){
+    cout << "Dealer wins with " << dealerTotal << endl;
+    }  
+  else if(playerTotal > dealerTotal){
+    cout << "You win." << endl;
+    }
+    else if(playerTotal < dealerTotal){
+    cout << "Dealer wins." << endl;
+    }
+    else{
+    cout << "It's a tie." << endl;
+    }        
+};
+
+int main() {
+  bool game_loop = true;
+  while (game_loop){
+    
+    // Reset and shuffle deck after each round
+    currentCardIndex=0;
+    initializeDeck();  
+    shuffleDeck();
+ 
+    // Deal Intial Player Cards
+    int playerTotal = dealInitialPlayerCards();
+    cout << "The playerTotal is " << playerTotal << endl;
+    
+    // Deal Intial Dealer Cards
+    int dealerTotal = dealInitialPlayerCards();
+    cout << "The dealerTotal is " << dealerTotal << endl;
+
+    // Player turn
+    playerTotal = playerTurn(playerTotal);
+
+    // PlayerTotal over 21 Ends round
+    if (playerTotal >21){
+      cout<< "Player busted with " << playerTotal << ". Dealer wins"<<endl;
+    }
+    // PlayerTotal at 21 Ends round
+    else if (playerTotal == 21){
+      cout<< "Player wins with " << playerTotal << endl;
+    }
+    // else Dealer Turn
+    else{
+      // Dealer turn
+      dealerTotal = dealerTurn(dealerTotal);
+      // Pick and Print winner
+      determineWinner(playerTotal, dealerTotal);
+    }
+
+    // Ask if user wants to play again
+    cout << "Play Again? ";
+    
+    string actionz;
+    getline(cin, actionz);
+
+    if (actionz == "No"){
+      game_loop = false;
+    }
+  }// Ends gameLoop
+   return 0;
+}// Ends main
